@@ -36,13 +36,13 @@ fn main() {
                 shininess: 300f64,
             },
             Sphere {
-                center: Vector3::new(1f64, 0f64, 4f64),
+                center: Vector3::new(2f64, 0f64, 4f64),
                 color: Color::new(215, 153, 33),
                 radius: 1f64,
                 shininess: 500f64,
             },
             Sphere {
-                center: Vector3::new(-1f64, 0f64, 4f64),
+                center: Vector3::new(-2f64, 0f64, 4f64),
                 color: Color::new(204, 36, 29),
                 radius: 1f64,
                 shininess: 10f64,
@@ -66,7 +66,7 @@ fn main() {
             }),
         ],
         viewport_size: Vector2::new(1f64, 1f64),
-        camera_position: Vector3::new(0f64, 3f64, -10f64),
+        camera_position: Vector3::new(0f64, 1f64, -5f64),
         camera_orientation: Vector3::new(0f64, 0f64, 1f64),
         background_color: Color::new(60, 56, 54),
     };
@@ -216,7 +216,7 @@ fn compute_lighting(
                 let light_direction = point_light.position - point;
 
                 let intersection =
-                    closest_sphere_intersection(state, point, direction, 0.00001f64, 1f64);
+                    closest_sphere_intersection(state, point, light_direction, 0.00001f64, 1f64);
 
                 match intersection {
                     Some(_) => continue,
