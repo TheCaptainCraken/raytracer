@@ -92,8 +92,8 @@ impl Image {
         let half_width = (self.width / 2) as i64;
         let half_height = (self.height / 2) as i64;
 
-        for y in (-half_height + 1)..half_height {
-            for x in (-half_width + 1)..half_width {
+        for y in -half_height..=half_height {
+            for x in -half_width..=half_width {
                 self.set_pixel(Position { x, y }, function(Position { x, y }));
             }
         }

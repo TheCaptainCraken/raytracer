@@ -71,7 +71,7 @@ fn main() {
         background_color: Color::new(60, 56, 54),
     };
 
-    let mut canvas = Image::new(state.canvas_width, state.canvas_height);
+    let mut canvas = Image::new(state.canvas_width + 1, state.canvas_height + 1);
 
     canvas.set_all_pixels(|pos| {
         let direction = canvas_to_viewport(&state, pos.x, pos.y);
