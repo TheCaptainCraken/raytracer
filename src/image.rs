@@ -9,15 +9,15 @@ pub struct Position {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Pixel {
-    red: u8,
-    green: u8,
-    blue: u8,
+pub struct Color {
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
 }
 
-impl Pixel {
+impl Color {
     pub fn new(red: u8, green: u8, blue: u8) -> Self {
-        Pixel { red, green, blue }
+        Color { red, green, blue }
     }
 
     pub fn to_vec(&self) -> Vec<u8> {
@@ -27,17 +27,17 @@ impl Pixel {
 
 #[derive(Debug, Clone)]
 pub struct Image {
-    pixels: Vec<Pixel>,
+    pixels: Vec<Color>,
     width: usize,
     height: usize,
 }
 
 impl Image {
     pub fn new(width: usize, height: usize) -> Self {
-        let mut pixels: Vec<Pixel> = Vec::with_capacity(width * height);
+        let mut pixels: Vec<Color> = Vec::with_capacity(width * height);
 
         for _ in 0..(width * height) {
-            pixels.push(Pixel::new(30, 30, 30));
+            pixels.push(Color::new(30, 30, 30));
         }
 
         Image {
@@ -73,7 +73,7 @@ impl Image {
         writer.write_image_data(&pixels).unwrap(); // Save
     }
 
-    pub fn set_pixel(&mut self, pos: Position, pixel: Pixel) {
+    pub fn set_pixel(&mut self, pos: Position, pixel: Color) {
         let half_width = (self.width / 2) as i64;
         let half_height = (self.height / 2) as i64;
 
@@ -88,7 +88,7 @@ impl Image {
         }
     }
 
-    pub fn set_all_pixels<F: Fn(Position) -> Pixel>(&mut self, function: F) {
+    pub fn set_all_pixels<F: Fn(Position) -> Color>(&mut self, function: F) {
         let half_width = (self.width / 2) as i64;
         let half_height = (self.height / 2) as i64;
 
