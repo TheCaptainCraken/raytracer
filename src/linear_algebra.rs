@@ -6,6 +6,9 @@ pub trait Algebra {
     fn dot(&self, other: &Self) -> f64;
     fn scaled(&self, factor: f64) -> Self;
     fn normalized(&self) -> Self;
+    fn zero() -> Self;
+
+    fn inverse(&self) -> Self;
 }
 
 impl Algebra for vector2::Vector2 {
@@ -25,6 +28,14 @@ impl Algebra for vector2::Vector2 {
         let norm = self.norm();
         self.scaled(1f64 / norm)
     }
+
+    fn zero() -> Self {
+        vector2::Vector2::new(0f64, 0f64)
+    }
+
+    fn inverse(&self) -> Self {
+        self.scaled(-1f64)
+    }
 }
 
 impl Algebra for vector3::Vector3 {
@@ -43,5 +54,13 @@ impl Algebra for vector3::Vector3 {
     fn normalized(&self) -> Self {
         let norm = self.norm();
         self.scaled(1f64 / norm)
+    }
+
+    fn zero() -> Self {
+        vector3::Vector3::new(0f64, 0f64, 0f64)
+    }
+
+    fn inverse(&self) -> Self {
+        self.scaled(-1f64)
     }
 }
