@@ -2,6 +2,9 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
 
+use crate::linear_algebra::vector3::Vector3;
+use crate::linear_algebra::Algebra;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Position {
     pub x: i64,
@@ -20,8 +23,12 @@ impl Color {
         Color { red, green, blue }
     }
 
-    pub fn to_vec(&self) -> Vec<u8> {
+    pub fn to_vec(self) -> Vec<u8> {
         vec![self.red, self.green, self.blue]
+    }
+
+    pub fn to_vec3(self) -> Vector3 {
+        Vector3::new(self.red as f64, self.green as f64, self.blue as f64)
     }
 }
 

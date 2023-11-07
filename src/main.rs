@@ -1,6 +1,7 @@
 mod image;
 mod light;
 mod linear_algebra;
+mod material;
 mod sphere;
 
 use image::{Color, Image};
@@ -9,7 +10,8 @@ use linear_algebra::{
     Algebra,
     {vector2::Vector2, vector3::Vector3},
 };
-use sphere::{closest_sphere_intersection, Sphere};
+use material::Material;
+use sphere::Sphere;
 
 pub struct State {
     canvas_width: usize,
@@ -30,38 +32,28 @@ fn main() {
         objects: vec![
             Sphere {
                 center: Vector3::new(0f64, -1f64, 3f64),
-                color: Color::new(69, 133, 136),
                 radius: 1f64,
-                shininess: 300f64,
-                reflectivness: 0.1f64,
+                material: Material::new(Color::new(255, 255, 0), None, None),
             },
             Sphere {
                 center: Vector3::new(2f64, 0f64, 4f64),
-                color: Color::new(215, 153, 33),
+                material: Material::new(Color::new(0, 255, 255), Some(500f64), Some(0.3f64)),
                 radius: 1f64,
-                shininess: 500f64,
-                reflectivness: 0.3f64,
             },
             Sphere {
                 center: Vector3::new(-2f64, 0f64, 4f64),
-                color: Color::new(204, 36, 29),
+                material: Material::new(Color::new(255, 0, 255), Some(10f64), Some(0.4f64)),
                 radius: 1f64,
-                shininess: 10f64,
-                reflectivness: 0.4f64,
             },
             Sphere {
                 center: Vector3::new(0f64, -5001f64, 0f64),
-                color: Color::new(142, 192, 124),
+                material: Material::new(Color::new(255, 0, 0), None, Some(0.5f64)),
                 radius: 5000f64,
-                shininess: 1000f64,
-                reflectivness: 0.5f64,
             },
             Sphere {
                 center: Vector3::new(0f64, 2f64, 3f64),
-                color: Color::new(230, 230, 230),
+                material: Material::new(Color::new(230, 230, 230), None, Some(0.8f64)),
                 radius: 1.5f64,
-                shininess: 1000f64,
-                reflectivness: 0.8f64,
             },
         ],
         lights: vec![
@@ -94,7 +86,7 @@ fn main() {
         )
     });
 
-    canvas.export("reflections3");
+    canvas.export("reflections4");
 }
 
 fn canvas_to_viewport(state: &State, x: i64, y: i64) -> Vector3 {
@@ -113,8 +105,13 @@ fn ray_trace(
     maximum_distance: f64,
     depth: usize,
 ) -> Color {
-    let intersection =
-        closest_sphere_intersection(state, origin, direction, minimum_distance, maximum_distance);
+    let intersection = Sphere::closest_sphere_intersection(
+        &state.objects,
+        origin,
+        direction,
+        minimum_distance,
+        maximum_distance,
+    );
 
     match intersection {
         Some((sphere, closest_distance)) => {
@@ -126,13 +123,13 @@ fn ray_trace(
                 intersection_point,
                 intersection_point_normal,
                 direction.inverse(),
-                sphere.shininess,
+                sphere.material.shininess,
             );
 
             let local_color = Color::new(
-                (sphere.color.red as f64 * lighting_factor) as u8,
-                (sphere.color.green as f64 * lighting_factor) as u8,
-                (sphere.color.blue as f64 * lighting_factor) as u8,
+                (sphere.material.surface_color.red as f64 * lighting_factor) as u8,
+                (sphere.material.surface_color.green as f64 * lighting_factor) as u8,
+                (sphere.material.surface_color.blue as f64 * lighting_factor) as u8,
             );
 
             if depth == 0 {
@@ -148,17 +145,17 @@ fn ray_trace(
                     depth - 1,
                 );
 
-                Color::new(
-                    ((local_color.red as f64) * (1f64 - sphere.reflectivness)
-                        + (reflected_color.red as f64) * sphere.reflectivness)
-                        as u8,
-                    ((local_color.green as f64) * (1f64 - sphere.reflectivness)
-                        + (reflected_color.green as f64) * sphere.reflectivness)
-                        as u8,
-                    ((local_color.blue as f64) * (1f64 - sphere.reflectivness)
-                        + (reflected_color.blue as f64) * sphere.reflectivness)
-                        as u8,
-                )
+                match sphere.material.reflectivness {
+                    Some(r) => Color::new(
+                        ((local_color.red as f64) * (1f64 - r) + (reflected_color.red as f64) * r)
+                            as u8,
+                        ((local_color.green as f64) * (1f64 - r)
+                            + (reflected_color.green as f64) * r) as u8,
+                        ((local_color.blue as f64) * (1f64 - r) + (reflected_color.blue as f64) * r)
+                            as u8,
+                    ),
+                    None => local_color,
+                }
             }
         }
         None => state.background_color,

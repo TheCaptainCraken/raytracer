@@ -1,6 +1,6 @@
 use crate::{
     linear_algebra::{vector3::Vector3, Algebra},
-    sphere::closest_sphere_intersection,
+    sphere::Sphere,
     State,
 };
 
@@ -35,7 +35,7 @@ pub fn compute_lighting(
     point: Vector3,
     normal: Vector3,
     v: Vector3,
-    shininess: f64,
+    shininess: Option<f64>,
 ) -> f64 {
     let mut lighting_factor: f64 = 0f64;
 
@@ -46,14 +46,19 @@ pub fn compute_lighting(
                 let light_direction = point_light.position - point;
                 if !is_in_shadow(state, point, light_direction, 0.000001f64, 1f64) {
                     lighting_factor +=
-                        compute_illumination(point_light.intensity, light_direction, normal)
-                            + compute_specular_reflections(
+                        compute_illumination(point_light.intensity, light_direction, normal);
+                    match shininess {
+                        Some(s) => {
+                            lighting_factor += compute_specular_reflections(
                                 point_light.intensity,
                                 light_direction,
                                 normal,
-                                shininess,
+                                s,
                                 v,
-                            );
+                            )
+                        }
+                        None => (),
+                    };
                 }
             }
             Light::Directional(directional_light) => {
@@ -62,13 +67,19 @@ pub fn compute_lighting(
                         directional_light.intensity,
                         directional_light.direction,
                         normal,
-                    ) + compute_specular_reflections(
-                        directional_light.intensity,
-                        directional_light.direction,
-                        normal,
-                        shininess,
-                        v,
                     );
+                    match shininess {
+                        Some(s) => {
+                            lighting_factor += compute_specular_reflections(
+                                directional_light.intensity,
+                                directional_light.direction,
+                                normal,
+                                s,
+                                v,
+                            )
+                        }
+                        None => (),
+                    };
                 }
             }
         };
@@ -84,8 +95,14 @@ fn is_in_shadow(
     minimum_distance: f64,
     maximum_distance: f64,
 ) -> bool {
-    closest_sphere_intersection(state, point, direction, minimum_distance, maximum_distance)
-        .is_some()
+    Sphere::closest_sphere_intersection(
+        &state.objects,
+        point,
+        direction,
+        minimum_distance,
+        maximum_distance,
+    )
+    .is_some()
 }
 
 fn compute_illumination(intensity: f64, direction: Vector3, normal: Vector3) -> f64 {
