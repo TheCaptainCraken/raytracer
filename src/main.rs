@@ -86,7 +86,7 @@ fn main() {
         )
     });
 
-    canvas.export("reflections4");
+    canvas.export("example");
 }
 
 fn canvas_to_viewport(state: &State, x: i64, y: i64) -> Vector3 {
