@@ -3,7 +3,6 @@ use std::io::BufWriter;
 use std::path::Path;
 
 use crate::linear_algebra::vector3::Vector3;
-use crate::linear_algebra::Algebra;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Position {
@@ -29,6 +28,14 @@ impl Color {
 
     pub fn to_vec3(self) -> Vector3 {
         Vector3::new(self.red as f64, self.green as f64, self.blue as f64)
+    }
+
+    pub fn from_vec3(vector: Vector3) -> Self {
+        Self::new(
+            vector.x.clamp(0f64, 255f64) as u8,
+            vector.y.clamp(0f64, 255f64) as u8,
+            vector.z.clamp(0f64, 255f64) as u8,
+        )
     }
 }
 
@@ -86,6 +93,7 @@ impl Image {
 
         if pos.x > half_width || pos.x < -half_width || pos.y > half_height || pos.y < -half_height
         {
+            dbg!(pos);
             panic!("Position invalid!");
         } else {
             let x_pos = pos.x + half_width;
@@ -99,9 +107,13 @@ impl Image {
         let half_width = (self.width / 2) as i64;
         let half_height = (self.height / 2) as i64;
 
-        for y in -half_height..=half_height {
-            for x in -half_width..=half_width {
-                self.set_pixel(Position { x, y }, function(Position { x, y }));
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let position = Position {
+                    x: x as i64 - half_width,
+                    y: y as i64 - half_height,
+                };
+                self.set_pixel(position, function(position));
             }
         }
     }

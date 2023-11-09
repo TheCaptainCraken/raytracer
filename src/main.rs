@@ -126,10 +126,12 @@ fn ray_trace(
                 sphere.material.shininess,
             );
 
-            let local_color = Color::new(
-                (sphere.material.surface_color.red as f64 * lighting_factor) as u8,
-                (sphere.material.surface_color.green as f64 * lighting_factor) as u8,
-                (sphere.material.surface_color.blue as f64 * lighting_factor) as u8,
+            let local_color = Color::from_vec3(
+                sphere
+                    .material
+                    .surface_color
+                    .to_vec3()
+                    .scaled(lighting_factor),
             );
 
             if depth == 0 {
@@ -146,13 +148,9 @@ fn ray_trace(
                 );
 
                 match sphere.material.reflectivness {
-                    Some(r) => Color::new(
-                        ((local_color.red as f64) * (1f64 - r) + (reflected_color.red as f64) * r)
-                            as u8,
-                        ((local_color.green as f64) * (1f64 - r)
-                            + (reflected_color.green as f64) * r) as u8,
-                        ((local_color.blue as f64) * (1f64 - r) + (reflected_color.blue as f64) * r)
-                            as u8,
+                    Some(r) => Color::from_vec3(
+                        local_color.to_vec3().scaled(1f64 - r)
+                            + reflected_color.to_vec3().scaled(r),
                     ),
                     None => local_color,
                 }
