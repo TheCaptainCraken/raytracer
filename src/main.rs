@@ -2,18 +2,18 @@ mod image;
 mod light;
 mod linear_algebra;
 mod material;
+mod raytrace;
 mod sphere;
 
+use std::env;
+
 use image::{Color, Image};
-use light::{compute_lighting, AmbientLight, DirectionalLight, Light, PointLight};
-use linear_algebra::{
-    Algebra,
-    {vector2::Vector2, vector3::Vector3},
-};
+use light::{AmbientLight, DirectionalLight, Light, PointLight};
+use linear_algebra::{vector2::Vector2, vector3::Vector3};
 use material::Material;
 use sphere::Sphere;
 
-pub struct State {
+pub struct RenderSettings {
     canvas_width: usize,
     canvas_height: usize,
     projection_plane_distance: f64,
@@ -25,7 +25,27 @@ pub struct State {
 }
 
 fn main() {
-    let state = State {
+    let render_settings = get_settings();
+    let mut canvas = Image::new(
+        render_settings.canvas_width + 1,
+        render_settings.canvas_height + 1,
+    );
+    canvas.set_all_pixels(|pos| {
+        let direction = raytrace::canvas_to_viewport(&render_settings, pos.x, pos.y);
+        raytrace::ray_trace(
+            &render_settings,
+            render_settings.camera_position,
+            direction,
+            render_settings.projection_plane_distance,
+            f64::INFINITY,
+            4,
+        )
+    });
+    canvas.export(get_filename().as_str());
+}
+
+fn get_settings() -> RenderSettings {
+    RenderSettings {
         canvas_width: 1920,
         canvas_height: 1920,
         projection_plane_distance: 1f64,
@@ -70,96 +90,17 @@ fn main() {
         viewport_size: Vector2::new(1f64, 1f64),
         camera_position: Vector3::new(0f64, 1f64, -5f64),
         background_color: Color::new(60, 56, 54),
-    };
-
-    let mut canvas = Image::new(state.canvas_width + 1, state.canvas_height + 1);
-
-    canvas.set_all_pixels(|pos| {
-        let direction = canvas_to_viewport(&state, pos.x, pos.y);
-        ray_trace(
-            &state,
-            state.camera_position,
-            direction,
-            state.projection_plane_distance,
-            f64::INFINITY,
-            4,
-        )
-    });
-
-    canvas.export("example");
-}
-
-fn canvas_to_viewport(state: &State, x: i64, y: i64) -> Vector3 {
-    Vector3::new(
-        (x as f64) * state.viewport_size.x / (state.canvas_width as f64),
-        (y as f64) * state.viewport_size.y / (state.canvas_height as f64),
-        state.projection_plane_distance,
-    )
-}
-
-fn ray_trace(
-    state: &State,
-    origin: Vector3,
-    direction: Vector3,
-    minimum_distance: f64,
-    maximum_distance: f64,
-    depth: usize,
-) -> Color {
-    let intersection = Sphere::closest_sphere_intersection(
-        &state.objects,
-        origin,
-        direction,
-        minimum_distance,
-        maximum_distance,
-    );
-
-    match intersection {
-        Some((sphere, closest_distance)) => {
-            let intersection_point = state.camera_position + direction.scaled(closest_distance);
-            let intersection_point_normal = (intersection_point - sphere.center).normalized();
-
-            let lighting_factor = compute_lighting(
-                state,
-                intersection_point,
-                intersection_point_normal,
-                direction.inverse(),
-                sphere.material.shininess,
-            );
-
-            let local_color = Color::from_vec3(
-                sphere
-                    .material
-                    .surface_color
-                    .to_vec3()
-                    .scaled(lighting_factor),
-            );
-
-            if depth == 0 {
-                local_color
-            } else {
-                let reflected_ray = reflect_ray(direction.inverse(), intersection_point_normal);
-                let reflected_color = ray_trace(
-                    state,
-                    intersection_point,
-                    reflected_ray,
-                    0.001,
-                    maximum_distance,
-                    depth - 1,
-                );
-
-                match sphere.material.reflectivness {
-                    Some(r) => Color::from_vec3(
-                        local_color.to_vec3().scaled(1f64 - r)
-                            + reflected_color.to_vec3().scaled(r),
-                    ),
-                    None => local_color,
-                }
-            }
-        }
-        None => state.background_color,
     }
 }
 
-fn reflect_ray(ray: Vector3, normal: Vector3) -> Vector3 {
-    normal.scaled(2f64 * normal.dot(&ray)) - ray
+fn get_filename() -> String {
+    let args: Vec<String> = env::args().collect();
+
+    let mut file_name = String::from("untitled_render");
+
+    if args.len() > 1 {
+        file_name = args[1].clone();
+    }
+
+    file_name
 }

@@ -1,7 +1,7 @@
 use crate::{
     linear_algebra::{vector3::Vector3, Algebra},
     sphere::Sphere,
-    State,
+    RenderSettings,
 };
 
 use super::linear_algebra;
@@ -31,7 +31,7 @@ pub struct DirectionalLight {
 }
 
 pub fn compute_lighting(
-    state: &State,
+    state: &RenderSettings,
     point: Vector3,
     normal: Vector3,
     v: Vector3,
@@ -89,7 +89,7 @@ pub fn compute_lighting(
 }
 
 fn is_in_shadow(
-    state: &State,
+    state: &RenderSettings,
     point: Vector3,
     direction: Vector3,
     minimum_distance: f64,
