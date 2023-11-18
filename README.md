@@ -16,3 +16,16 @@ cargo run --release filename
 Where `filename` is the name of the `.png` file containing the finished render.
 
 To change the scene, modify the `main.rs` file.
+
+## Features I would like to add
+
+> This is a list of missing features I will maybe add in the future.
+
+- **arbitrary camera rotation**
+- **parallelization**
+- shadow optimization
+- subsampling & supersampling
+- **support other primitives**
+- **transparency**
+- refractions
+
