@@ -10,7 +10,7 @@ A raytracer written in Rust🦀 from scratch.
 To try it just clone the repo and build the project using:
 
 ```BASH
-cargo run --release [filename]
+cargo run --release filename
 ```
 
 Where `filename` is the name of the `.png` file containing the finished render.
